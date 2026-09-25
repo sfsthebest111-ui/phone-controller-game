@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Host</title>
+    <!-- Import PeerJS for networking and QRCode.js for the QR image -->
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body { margin: 0; background: #222; color: white; overflow: hidden; font-family: sans-serif; }
+        #player { width: 50px; height: 50px; background: #00ffcc; position: absolute; top: 50%; left: 50%; }
+        #ui { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 8px; }
+        #qrcode { margin-top: 15px; background: white; padding: 10px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h3>Scan to connect</h3>
+        <p id="status">Generating connection ID...</p>
+        <div id="qrcode"></div>
+    </div>
+    
+    <div id="player"></div>
+
+    <script>
+        // Connect to PeerJS's free public server to get a unique ID
+        const peer = new Peer(); 
+        
+        peer.on('open', (id) => {
+            document.getElementById('status').innerText = "Ready!";
+            
+            // Build the URL for the controller file, adding the ID to the end
+            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+            const link = `${baseUrl}/controller.html?id=${id}`;
+            
+            // Generate the QR code
+            new QRCode(document.getElementById("qrcode"), {
+                text: link,
+                width: 150,
+                height: 150
+            });
+        });
+
+        // Set up the player character
+        let x = window.innerWidth / 2;
+        let y = window.innerHeight / 2;
+        const player = document.getElementById('player');
+        const speed = 20;
+
+        // Listen for the phone connecting
+        peer.on('connection', (conn) => {
+            document.getElementById('status').innerText = "Phone connected!";
+            
+            // Move character when data is received from the phone
+            conn.on('data', (direction) => {
+                if (direction === 'up') y -= speed;
+                if (direction === 'down') y += speed;
+                if (direction === 'left') x -= speed;
+                if (direction === 'right') x += speed;
+                
+                player.style.left = x + 'px';
+                player.style.top = y + 'px';
+            });
+        });
+    </script>
+</body>
+</html>

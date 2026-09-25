@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #333; margin: 0; font-family: sans-serif; }
+        .row { display: flex; }
+        button { width: 80px; height: 80px; margin: 10px; font-size: 24px; border-radius: 50%; border: none; background: #00ffcc; font-weight: bold; touch-action: manipulation; }
+        button:active { background: #00ccaa; }
+        #status { color: white; margin-bottom: 20px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <div id="status">Connecting...</div>
+    
+    <div class="row">
+        <button onclick="send('up')">UP</button>
+    </div>
+    <div class="row">
+        <button onclick="send('left')">L</button>
+        <button onclick="send('down')">DN</button>
+        <button onclick="send('right')">R</button>
+    </div>
+
+    <script>
+        // Get the host ID from the URL (e.g. controller.html?id=12345)
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostId = urlParams.get('id');
+
+        const peer = new Peer();
+        let connection;
+
+        // Connect to the computer's ID
+        peer.on('open', () => {
+            connection = peer.connect(hostId);
+            
+            connection.on('open', () => {
+                document.getElementById('status').innerText = "Connected to Game!";
+            });
+        });
+
+        // Send the button press over the peer connection
+        function send(dir) {
+            if (connection && connection.open) {
+                connection.send(dir);
+            }
+        }
+    </script>
+</body>
+</html>
